@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restoran POS 2.0</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- GİRİŞ EKRANI -->
+<div id="login-screen" class="login-container">
+    <div class="login-box">
+        <div class="login-icon">🍽️</div>
+        <h1>Restoran POS 2.0</h1>
+        <p>Giriş Yap</p>
+        <input type="text" id="login-username" placeholder="Kullanıcı Adı">
+        <input type="password" id="login-password" placeholder="Şifre">
+        <button id="loginBtn">Giriş Yap</button>
+        <div class="login-error" id="login-error"></div>
+    </div>
+</div>
+
+<!-- ANA EKRAN - MASALAR -->
+<div id="pos-screen" style="display:none;">
+    <header>
+        <h1>🍽️ Restoran POS</h1>
+        <div class="header-right">
+            <div id="notification-container" class="notification-container"></div>
+            <span id="user-role-badge" class="role-badge">👤 Kasiyer</span>
+            <span id="user-name-display"></span>
+            <button id="logoutBtn">🚪 Çıkış</button>
+            <button id="adminPanelBtn" style="display:none;">🔐 Admin Paneli</button>
+        </div>
+    </header>
+
+    <!-- MASALAR -->
+    <div id="tables-section">
+        <div class="tables-header">
+            <h2>🪑 Masalar</h2>
+            <div class="tables-legend">
+                <span class="legend-item"><span class="legend-color legend-empty"></span> Boş</span>
+                <span class="legend-item"><span class="legend-color legend-active"></span> Aktif</span>
+                <span class="legend-item"><span class="legend-color legend-paid"></span> Ödendi</span>
+            </div>
+        </div>
+        <div id="tables-grid" class="tables-grid"></div>
+    </div>
+</div>
+
+<!-- MASA DETAY EKRANI -->
+<div id="table-detail-screen" style="display:none;">
+    <header style="background: linear-gradient(135deg, #e67e22, #d35400);">
+        <h1>🪑 Masa <span id="table-detail-name"></span></h1>
+        <div class="header-right">
+            <span id="table-status-badge" class="role-badge"></span>
+            <button id="backToTablesBtn">⬅ Masalara Dön</button>
+        </div>
+    </header>
+
+    <main>
+        <section class="products">
+            <h2>📦 Ürünler</h2>
+            <div class="menu" id="category-menu"></div>
+            <div id="table-product-list"></div>
+        </section>
+
+        <section class="cart">
+            <h2>🛍️ Masa Siparişi</h2>
+            <div id="table-cart-list"></div>
+            <div class="cart-total">Toplam: <span id="table-total">0</span> ₺</div>
+            <div class="button-group">
+                <button id="saveTableOrderBtn">💾 Siparişi Kaydet</button>
+                <button id="tablePaymentBtn">💳 Ödeme Al</button>
+                <button id="detailedPaymentBtn">📋 Detaylı Öde</button>
+                <button id="cancelTableBtn" style="display:none;" class="btn-danger">❌ Masayı İptal</button>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- DETAYLI ÖDEME MODALI -->
+<div id="detailed-payment-modal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <h3>📋 Detaylı Ödeme - Masa <span id="detailed-table-name"></span></h3>
+        <div id="detailed-items-list"></div>
+        <div class="cart-total">Seçili Toplam: <span id="detailed-total">0</span> ₺</div>
+        <div class="cash-info" style="margin:10px 0;">
+            <div>💰 Toplam Sipariş: <span id="detailed-full-total">0</span> ₺</div>
+            <div>💳 Ödenecek: <span id="detailed-pay-amount">0</span> ₺</div>
+        </div>
+        <div class="modal-buttons">
+            <button id="processDetailedPaymentBtn" class="btn-success">✅ Seçili Ödemeyi Al</button>
+            <button id="closeDetailedPaymentBtn" class="btn-danger">Kapat</button>
+        </div>
+    </div>
+</div>
+
+<!-- ÖDEME MODALI -->
+<div id="payment-modal" class="modal">
+    <div class="modal-content">
+        <h3>💳 Ödeme Al</h3>
+        <div class="modal-total">Toplam: <strong id="modal-total">0</strong> ₺</div>
+        <input type="number" id="payment-amount" placeholder="Ödeme Tutarı">
+        <textarea id="payment-note" placeholder="Açıklama (Zorunlu)"></textarea>
+        <div class="modal-buttons">
+            <button id="paymentConfirmBtn">Onayla</button>
+            <button id="paymentCloseBtn" class="btn-danger">İptal</button>
+        </div>
+    </div>
+</div>
+
+<!-- GİDER MODALI -->
+<div id="expense-modal" class="modal">
+    <div class="modal-content">
+        <h3>📉 Gider Girişi</h3>
+        <input type="number" id="expense-amount" placeholder="Tutar">
+        <textarea id="expense-note" placeholder="Açıklama (Zorunlu)"></textarea>
+        <div class="modal-buttons">
+            <button id="expenseConfirmBtn">Kaydet</button>
+            <button id="expenseCloseBtn" class="btn-danger">İptal</button>
+        </div>
+    </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-screen" style="display:none;">
+    <div class="admin-header">
+        <button id="closeAdminBtn">⬅ Masalara Dön</button>
+        <button id="resetDefaultBtn" class="btn-danger">🔄 Sıfırla</button>
+    </div>
+
+    <div class="admin-section">
+        <h3>👥 Kullanıcı Yönetimi</h3>
+        <div class="form-group">
+            <input type="text" id="new-username" placeholder="Kullanıcı Adı">
+            <input type="password" id="new-user-password" placeholder="Şifre">
+            <select id="new-user-role">
+                <option value="waiter">👨‍🍳 Garson</option>
+                <option value="user">👤 Kasiyer</option>
+                <option value="admin">👑 Admin</option>
+            </select>
+            <button id="addUserBtn">➕ Kullanıcı Ekle</button>
+        </div>
+        <div id="user-list-container"></div>
+    </div>
+
+    <div class="admin-section">
+        <h3>🪑 Masa Yönetimi</h3>
+        <div class="form-group">
+            <input type="text" id="new-table-name" placeholder="Masa Adı (örn: Masa 5)">
+            <button id="addTableBtn">➕ Masa Ekle</button>
+        </div>
+        <div id="tables-list-container"></div>
+    </div>
+
+    <div class="admin-section">
+        <h3>📊 Finansal Durum</h3>
+        <div class="stats-grid">
+            <div class="stat-card stat-kasa"><h4>💰 Kasa</h4><div class="stat-value" id="admin-kasa">0</div></div>
+            <div class="stat-card stat-ciro"><h4>📈 Toplam Ciro</h4><div class="stat-value" id="admin-ciro">0</div></div>
+            <div class="stat-card stat-gider"><h4>📉 Toplam Gider</h4><div class="stat-value" id="admin-gider">0</div></div>
+        </div>
+        <div class="button-group">
+            <button id="dailyReportBtn" class="btn-warning">📊 Gün Raporu</button>
+            <button id="expenseBtn">📉 Gider Gir</button>
+            <button id="resetKasaBtn" class="btn-danger">🔄 Gün Sonu</button>
+        </div>
+    </div>
+
+    <div class="admin-section">
+        <h3>📂 Kategori Yönetimi</h3>
+        <div class="form-group">
+            <input type="text" id="new-category-name" placeholder="Kategori adı">
+            <input type="text" id="new-category-icon" placeholder="Emoji" style="width:80px">
+            <button id="addCategoryBtn">Ekle</button>
+        </div>
+        <div id="category-list-container"></div>
+    </div>
+
+    <div class="admin-section">
+        <h3>📦 Ürün Yönetimi</h3>
+        <div class="form-group">
+            <input type="text" id="new-product-name" placeholder="Ürün adı">
+            <select id="new-product-category"></select>
+            <button id="createProductBtn">Oluştur</button>
+        </div>
+        <div id="product-list-container"></div>
+    </div>
+
+    <div class="admin-section">
+        <h3>📦 Stok Yönetimi</h3>
+        <div class="form-group">
+            <select id="stock-product"></select>
+            <input type="number" id="stock-amount" placeholder="Adet" style="width:100px">
+            <button id="addStockBtn">Ekle</button>
+        </div>
+    </div>
+
+    <div class="admin-section">
+        <h3>📜 İşlem Logları</h3>
+        <button id="showLogsBtn">Göster</button>
+        <ul id="log-list"></ul>
+    </div>
+</div>
+
+<!-- DİĞER MODALLAR -->
+<div id="edit-category-modal" class="modal"><div class="modal-content"><h3>✏️ Kategori Düzenle</h3><input type="text" id="edit-category-name" placeholder="Ad"><input type="text" id="edit-category-icon" placeholder="Emoji"><div class="modal-buttons"><button id="saveCategoryBtn">Kaydet</button><button id="cancelCategoryBtn" class="btn-danger">İptal</button></div></div></div>
+<div id="edit-product-modal" class="modal"><div class="modal-content"><h3>✏️ Ürün Düzenle</h3><input type="text" id="edit-product-name" placeholder="Ürün Adı"><select id="edit-product-category"></select><div class="modal-buttons"><button id="saveProductBtn">Kaydet</button><button id="cancelProductBtn" class="btn-danger">İptal</button></div></div></div>
+<div id="variant-modal" class="modal"><div class="modal-content"><h3 id="modal-title">Varyant</h3><input type="text" id="variant-size" placeholder="Boyut"><input type="number" id="variant-price" placeholder="Fiyat"><input type="number" id="variant-stock" placeholder="Stok"><div class="modal-buttons"><button id="saveVariantBtn">Kaydet</button><button id="cancelVariantBtn" class="btn-danger">İptal</button></div></div></div>
+<div id="edit-table-modal" class="modal"><div class="modal-content"><h3>✏️ Masa Düzenle</h3><input type="text" id="edit-table-name-input" placeholder="Masa Adı"><div class="modal-buttons"><button id="saveTableEditBtn">Kaydet</button><button id="cancelTableEditBtn" class="btn-danger">İptal</button></div></div></div>
+
+<div id="modal-overlay"></div>
+
+<script src="app.js" defer></script>
+</body>
+</html>
