@@ -1,4 +1,4 @@
-// app.js - Restoran POS with Firebase
+// app.js - Restoran POS with Firebase Multi-Device
 
 // ========== FIREBASE YAPILANDIRMASI ==========
 const firebaseConfig = {
@@ -69,6 +69,14 @@ function initFirebase() {
   return new Promise((resolve) => {
     console.log('🔄 Firebase başlatılıyor...');
     
+    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
+      database = firebase.database();
+      fbReady = true;
+      console.log('✅ Firebase zaten hazır!');
+      resolve(true);
+      return;
+    }
+    
     const script1 = document.createElement('script');
     script1.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js';
     
@@ -109,7 +117,7 @@ function initFirebase() {
     
     setTimeout(() => {
       if (!fbReady) {
-        console.warn('⏰ Firebase zaman aşımı');
+        console.warn('⏰ Firebase zaman aşımı, localStorage ile devam ediliyor');
         resolve(false);
       }
     }, 10000);
@@ -121,11 +129,16 @@ function saveToFirebase(path, data) {
   if (fbReady && database) {
     database.ref(path).set(data).catch(e => console.warn('Firebase kaydetme hatası:', e));
   }
-  // Her zaman localStorage'a da kaydet (offline yedek)
-  localStorage.setItem("restoran_pos_" + path, JSON.stringify(data));
+  // Offline yedek
+  if (!fbReady || !database) {
+    localStorage.setItem("restoran_pos_" + path, JSON.stringify(data));
+  }
 }
 
 function loadFromLocal(key, defaultValue) {
+  if (fbReady && database) {
+    return defaultValue;
+  }
   const data = localStorage.getItem("restoran_pos_" + key);
   return data ? JSON.parse(data) : defaultValue;
 }
@@ -172,7 +185,7 @@ function saveLog(message, type = 'info') {
 }
 
 function loadUsers() {
-  return loadFromLocal("users", JSON.parse(JSON.stringify(DEFAULT_USERS)));
+  return JSON.parse(JSON.stringify(DEFAULT_USERS));
 }
 
 function saveUsers(users) {
@@ -190,7 +203,6 @@ function saveTables() {
 function loadTableOrders() {
   tableOrders = loadFromLocal("tableOrders", {});
   
-  // Eski "paid" durumundaki masaları temizle
   Object.keys(tableOrders).forEach(tableId => {
     if (tableOrders[tableId].status === 'paid') {
       tableOrders[tableId] = { items: [], status: 'empty', savedAt: null };
@@ -231,7 +243,6 @@ function listenToFirebase() {
     const data = snapshot.val();
     if (data) {
       products = data;
-      localStorage.setItem("restoran_pos_products", JSON.stringify(data));
       updateCategoryMenu();
       updateProductSelects();
       updateProductListDisplay();
@@ -246,7 +257,6 @@ function listenToFirebase() {
     const data = snapshot.val();
     if (data) {
       categories = data;
-      localStorage.setItem("restoran_pos_categories", JSON.stringify(data));
       updateCategoryMenu();
       updateCategorySelects();
       displayCategoryList();
@@ -262,7 +272,6 @@ function listenToFirebase() {
       toplamGider = data.total_expense || 0;
       gunlukCiro = data.daily_income || 0;
       gunlukGider = data.daily_expense || 0;
-      localStorage.setItem("restoran_pos_kasa", JSON.stringify(data));
       updateAdminStats();
     }
   });
@@ -271,7 +280,6 @@ function listenToFirebase() {
     const data = snapshot.val();
     if (data) {
       tables = data;
-      localStorage.setItem("restoran_pos_tables", JSON.stringify(data));
       renderTables();
       updateTablesListInAdmin();
     }
@@ -281,7 +289,6 @@ function listenToFirebase() {
     const data = snapshot.val();
     if (data) {
       tableOrders = data;
-      localStorage.setItem("restoran_pos_tableOrders", JSON.stringify(data));
       renderTables();
       if (currentTableId) {
         renderTableCart();
@@ -294,14 +301,12 @@ function listenToFirebase() {
     const data = snapshot.val();
     if (data) {
       logs = data;
-      localStorage.setItem("restoran_pos_logs", JSON.stringify(data));
     }
   });
   
   database.ref('users').on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {
-      localStorage.setItem("restoran_pos_users", JSON.stringify(data));
       updateUserList();
     }
   });
@@ -338,7 +343,18 @@ async function login() {
   const username = document.getElementById("login-username").value.trim();
   const password = document.getElementById("login-password").value;
   
-  const users = loadUsers();
+  let users;
+  if (fbReady && database) {
+    try {
+      const snapshot = await database.ref('users').once('value');
+      users = snapshot.val() || JSON.parse(JSON.stringify(DEFAULT_USERS));
+    } catch(e) {
+      users = loadUsers();
+    }
+  } else {
+    users = loadUsers();
+  }
+  
   const user = users.find(u => u.username === username && u.password === password);
   
   if (!user) { 
@@ -442,11 +458,6 @@ function renderTables() {
       statusText = 'Aktif';
       icon = '🟠';
     }
-    else if (order.status === 'paid') {
-      statusClass = 'empty';
-      statusText = 'Boş';
-      icon = '🟢';
-    }
     
     return `
       <div class="table-card ${statusClass}" onclick="openTableDetail(${table.id})">
@@ -466,6 +477,7 @@ function openTableDetail(tableId) {
   
   if (!tableOrders[tableId]) {
     tableOrders[tableId] = { items: [], status: 'empty', savedAt: null };
+    saveTableOrders();
   }
   
   const order = tableOrders[tableId];
@@ -547,11 +559,6 @@ function addToTable(pid, vidx) {
   if (!currentTableId) return;
   
   const order = tableOrders[currentTableId];
-  if (order.status === 'paid') {
-    showToast("Bu masa ödendi, yeni sipariş eklenemez!", "warning");
-    return;
-  }
-  
   const p = products.find(p => p.id === pid);
   const v = p.variants[vidx];
   
@@ -693,11 +700,6 @@ function openTablePayment() {
     return;
   }
   
-  if (order.status === 'paid') {
-    showToast("Bu masa zaten ödendi!", "warning");
-    return;
-  }
-  
   const total = order.items.reduce((s, i) => s + i.price * i.qty, 0);
   document.getElementById("modal-total").textContent = total.toFixed(2);
   document.getElementById("payment-amount").value = total.toFixed(2);
@@ -767,11 +769,6 @@ function openDetailedPayment() {
   const order = tableOrders[currentTableId];
   if (!order || order.items.length === 0) {
     showToast("Sipariş yok!", "warning");
-    return;
-  }
-  
-  if (order.status === 'paid') {
-    showToast("Bu masa zaten ödendi!", "warning");
     return;
   }
   
@@ -1361,7 +1358,26 @@ function updateAdminStats() {
 
 function updateUserList() {
   if (currentUser?.role !== "admin") return;
-  const users = loadUsers();
+  let users = JSON.parse(JSON.stringify(DEFAULT_USERS));
+  
+  if (fbReady && database) {
+    // Firebase'den güncel kullanıcıları almaya çalış
+    database.ref('users').once('value').then(snapshot => {
+      const data = snapshot.val();
+      if (data) {
+        renderUserListHTML(data);
+      } else {
+        renderUserListHTML(users);
+      }
+    }).catch(() => {
+      renderUserListHTML(users);
+    });
+  } else {
+    renderUserListHTML(users);
+  }
+}
+
+function renderUserListHTML(users) {
   const container = document.getElementById("user-list-container");
   if (!container) return;
   
@@ -1382,13 +1398,20 @@ function updateUserList() {
   document.querySelectorAll("[data-del]").forEach(btn => { btn.onclick = () => deleteUser(btn.dataset.del); });
 }
 
-function addUser() {
+async function addUser() {
   const username = document.getElementById("new-username").value.trim();
   const password = document.getElementById("new-user-password").value;
   const role = document.getElementById("new-user-role").value;
   if (!username || !password) { showToast("Tüm alanları doldurun!", "warning"); return; }
   
-  const users = loadUsers();
+  let users;
+  if (fbReady && database) {
+    const snapshot = await database.ref('users').once('value');
+    users = snapshot.val() || JSON.parse(JSON.stringify(DEFAULT_USERS));
+  } else {
+    users = loadUsers();
+  }
+  
   if (users.find(u => u.username === username)) { showToast("Bu kullanıcı zaten var!", "warning"); return; }
   
   users.push({ username, password, role });
@@ -1400,10 +1423,18 @@ function addUser() {
   saveLog(`Yeni kullanıcı: ${username} (${role})`, 'admin');
 }
 
-function changeUserPassword(username) {
+async function changeUserPassword(username) {
   const newPass = prompt("Yeni şifre:");
   if (!newPass) return;
-  const users = loadUsers();
+  
+  let users;
+  if (fbReady && database) {
+    const snapshot = await database.ref('users').once('value');
+    users = snapshot.val() || JSON.parse(JSON.stringify(DEFAULT_USERS));
+  } else {
+    users = loadUsers();
+  }
+  
   const user = users.find(u => u.username === username);
   if (user) user.password = newPass;
   saveUsers(users);
@@ -1411,9 +1442,17 @@ function changeUserPassword(username) {
   saveLog(`Kullanıcı şifresi değiştirildi: ${username}`, 'admin');
 }
 
-function deleteUser(username) {
+async function deleteUser(username) {
   if (username === currentUser.username) { showToast("Kendini silemezsin!", "error"); return; }
-  const users = loadUsers();
+  
+  let users;
+  if (fbReady && database) {
+    const snapshot = await database.ref('users').once('value');
+    users = snapshot.val() || JSON.parse(JSON.stringify(DEFAULT_USERS));
+  } else {
+    users = loadUsers();
+  }
+  
   saveUsers(users.filter(u => u.username !== username));
   updateUserList();
   showToast("Kullanıcı silindi!", "success");
@@ -1443,30 +1482,16 @@ function secureAddStock() {
 
 // ========== EVENT LISTENERLAR ==========
 document.addEventListener("DOMContentLoaded", async () => {
-  // Firebase'i başlat
-  await initFirebase();
-  
-  // Firebase gerçek zamanlı dinlemeyi başlat
-  if (fbReady) {
-    listenToFirebase();
-  }
-  
-  await loadAllData();
-  
-  // Giriş
+  // ÖNCE event listenerları bağla
   document.getElementById("loginBtn").onclick = login;
   document.getElementById("login-username").addEventListener("keypress", (e) => { if (e.key === "Enter") document.getElementById("login-password").focus(); });
   document.getElementById("login-password").addEventListener("keypress", (e) => { if (e.key === "Enter") login(); });
   
-  // Çıkış
   document.getElementById("logoutBtn").onclick = logout;
-  
-  // Admin panel
   document.getElementById("adminPanelBtn").onclick = openAdmin;
   document.getElementById("closeAdminBtn").onclick = closeAdmin;
   document.getElementById("resetDefaultBtn").onclick = resetToDefault;
   
-  // Masa işlemleri
   document.getElementById("backToTablesBtn").onclick = backToTables;
   document.getElementById("saveTableOrderBtn").onclick = saveTableOrder;
   document.getElementById("tablePaymentBtn").onclick = openTablePayment;
@@ -1475,54 +1500,40 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("closeDetailedPaymentBtn").onclick = () => closeModal("detailed-payment-modal");
   document.getElementById("cancelTableBtn").onclick = cancelTable;
   
-  // Ödeme modal
   document.getElementById("paymentConfirmBtn").onclick = processPayment;
   document.getElementById("paymentCloseBtn").onclick = () => { 
     closeModal("payment-modal"); 
     isTablePaymentInProgress = false; 
   };
   
-  // Gider
   document.getElementById("expenseBtn").onclick = openExpenseModal;
   document.getElementById("expenseConfirmBtn").onclick = processExpense;
   document.getElementById("expenseCloseBtn").onclick = () => closeModal("expense-modal");
   
-  // Admin - Kullanıcı
   document.getElementById("addUserBtn").onclick = addUser;
-  
-  // Admin - Masa
   document.getElementById("addTableBtn").onclick = addTable;
   document.getElementById("saveTableEditBtn").onclick = saveTableEdit;
   document.getElementById("cancelTableEditBtn").onclick = () => closeModal("edit-table-modal");
   
-  // Admin - Rapor
   document.getElementById("dailyReportBtn").onclick = showDailyReport;
   document.getElementById("resetKasaBtn").onclick = resetKasa;
   
-  // Admin - Kategori
   document.getElementById("addCategoryBtn").onclick = addCategory;
   document.getElementById("saveCategoryBtn").onclick = saveCategoryEdit;
   document.getElementById("cancelCategoryBtn").onclick = () => closeModal("edit-category-modal");
   
-  // Admin - Ürün
   document.getElementById("createProductBtn").onclick = showAddVariantModal;
   document.getElementById("saveProductBtn").onclick = saveProductEdit;
   document.getElementById("cancelProductBtn").onclick = () => closeModal("edit-product-modal");
   
-  // Admin - Varyant
   document.getElementById("saveVariantBtn").onclick = saveVariant;
   document.getElementById("cancelVariantBtn").onclick = () => closeModal("variant-modal");
   
-  // Admin - Stok
   document.getElementById("addStockBtn").onclick = secureAddStock;
-  
-  // Admin - Log
   document.getElementById("showLogsBtn").onclick = showLogs;
   
-  // Modal overlay
   document.getElementById("modal-overlay").onclick = closeAllModals;
   
-  // Başlangıç ekranı
   document.getElementById("login-screen").style.display = "flex";
   document.getElementById("pos-screen").style.display = "none";
   document.getElementById("admin-screen").style.display = "none";
@@ -1534,4 +1545,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   loadKasa();
   loadTables();
   loadTableOrders();
+  
+  // Firebase'i arka planda başlat
+  initFirebase().then((ready) => {
+    if (ready) {
+      console.log('✅ Firebase hazır, dinleme başlatılıyor...');
+      listenToFirebase();
+    } else {
+      console.warn('⚠️ Firebase başlatılamadı, localStorage ile devam ediliyor');
+    }
+  });
 });
