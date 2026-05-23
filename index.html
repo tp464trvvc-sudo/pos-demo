@@ -5,649 +5,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RestoranPOS - Firebase</title>
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: system-ui, sans-serif;
-        }
-
-        body {
-            margin: 0;
-            padding: 20px;
-            background: #f3f4f6;
-            min-height: 100vh;
-        }
-
-        /* Header - Dijital Menü */
-        .header {
-            max-width: 800px;
-            margin: 0 auto 20px auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            padding: 15px 25px;
-            border-radius: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .logo h1 {
-            margin: 0;
-            font-size: 24px;
-            color: #374151;
-        }
-
-        .logo p {
-            margin: 0;
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        .login-btn {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 24px;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .login-btn:hover {
-            background: #2563eb;
-        }
-
-        /* Dijital Menü */
-        .menu-container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .category {
-            margin-bottom: 30px;
-        }
-
-        .category-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #374151;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #10b981;
-        }
-
-        .product-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .product-card {
-            background: white;
-            border-radius: 16px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .product-name {
-            font-size: 18px;
-            font-weight: bold;
-            color: #374151;
-        }
-
-        .product-price {
-            font-size: 20px;
-            font-weight: bold;
-            color: #10b981;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            padding: 20px;
-            color: #6b7280;
-            font-size: 14px;
-        }
-
-        /* Giriş Modal */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            padding: 40px;
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .modal-title {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #374151;
-        }
-
-        .login-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-
-        .modal-login-btn {
-            width: 100%;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .modal-login-btn:hover {
-            background: #2563eb;
-        }
-
-        .modal-close {
-            width: 100%;
-            background: #6b7280;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .error-msg {
-            color: #ef4444;
-            text-align: center;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-
-        /* POS Ekranı Stilleri */
-        .pos-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .pos-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            padding: 15px 25px;
-            border-radius: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .logout-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-
-        .tables {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .table-btn {
-            padding: 40px 20px;
-            border: none;
-            border-radius: 16px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 18px;
-            min-width: 120px;
-            transition: transform 0.2s;
-            position: relative;
-        }
-
-        .table-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .table-btn.available {
-            background: #10b981;
-            color: white;
-        }
-
-        .table-btn.occupied {
-            background: #ef4444;
-            color: white;
-        }
-
-        .table-btn.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .order-view {
-            margin-top: 20px;
-        }
-
-        .order-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .back-btn {
-            background: #6b7280;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .order-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .product-list-pos {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 500px;
-            overflow-y: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 16px;
-        }
-
-        .product-btn {
-            padding: 12px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            text-align: left;
-            margin-bottom: 8px;
-        }
-
-        .product-btn:hover {
-            background: #2563eb;
-        }
-
-        .product-btn.disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-        }
-
-        .cart-view {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-        }
-
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .cart-item-detail {
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        .payment-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .pay-btn {
-            background: #10b981;
-            color: white;
-            border: none;
-            padding: 12px;
-            flex: 1;
-            border-radius: 12px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .pay-btn.detailed {
-            background: #3b82f6;
-        }
-
-        .pay-btn:hover {
-            opacity: 0.9;
-        }
-
-        .pay-btn.disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-        }
-
-        .table-actions {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .action-btn {
-            background: #6b7280;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .action-btn.primary {
-            background: #3b82f6;
-        }
-
-        .action-btn.warning {
-            background: #f59e0b;
-        }
-
-        .action-btn.danger {
-            background: #ef4444;
-        }
-
-        .action-btn.disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-        }
-
-        .modal-payment {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-payment-content {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .close-modal {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .payment-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 10px;
-            border-bottom: 1px solid #e5e7eb;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .payment-item:hover {
-            background: #f3f4f6;
-        }
-
-        .payment-item-info {
-            flex: 1;
-        }
-
-        .payment-item-controls {
-            min-width: 80px;
-            text-align: right;
-        }
-
-        .payment-total {
-            margin-top: 20px;
-            padding-top: 10px;
-            border-top: 2px solid #e5e7eb;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .modal-pay-btn {
-            background: #10b981;
-            color: white;
-            border: none;
-            padding: 12px;
-            width: 100%;
-            border-radius: 12px;
-            margin-top: 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        hr {
-            margin: 20px 0;
-        }
-
-        h4 {
-            margin: 10px 0 5px 0;
-            color: #374151;
-        }
-
-        .admin-panel {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .admin-table th,
-        .admin-table td {
-            border: 1px solid #e5e7eb;
-            padding: 10px;
-            text-align: left;
-        }
-
-        .admin-table th {
-            background: #f3f4f6;
-        }
-
-        .admin-input {
-            padding: 8px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            width: 100%;
-        }
-
-        .admin-btn {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            margin: 2px;
-            cursor: pointer;
-        }
-
-        .admin-btn.danger {
-            background: #ef4444;
-        }
-
-        .admin-btn.success {
-            background: #10b981;
-        }
-
-        .switch-btn {
-            background: #6b7280;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .section-title {
-            margin-top: 30px;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e5e7eb;
-        }
-
-        .revenue-card {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-        }
-
-        .revenue-card h3 {
-            margin: 0 0 10px 0;
-            font-size: 18px;
-            opacity: 0.9;
-        }
-
-        .revenue-card .total {
-            font-size: 36px;
-            font-weight: bold;
-            margin: 0;
-        }
-
-        .revenue-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-box {
-            background: #f3f4f6;
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-        }
-
-        .stat-box .label {
-            font-size: 14px;
-            color: #6b7280;
-            margin-bottom: 5px;
-        }
-
-        .stat-box .value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #374151;
-        }
-
-        .order-history {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .order-item {
-            padding: 10px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .order-date {
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        .masa-baslik {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #374151;
-        }
-
-        .selected-for-merge {
-            border: 3px solid #f59e0b !important;
-            transform: scale(1.02);
-        }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            color: #6b7280;
-            font-size: 18px;
-        }
+        * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { margin: 0; padding: 20px; background: #f3f4f6; min-height: 100vh; }
+        .header { max-width: 800px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .logo h1 { margin: 0; font-size: 24px; color: #374151; }
+        .logo p { margin: 0; font-size: 12px; color: #6b7280; }
+        .login-btn { background: #3b82f6; color: white; border: none; padding: 10px 24px; border-radius: 24px; font-size: 14px; cursor: pointer; font-weight: bold; }
+        .login-btn:hover { background: #2563eb; }
+        .menu-container { max-width: 800px; margin: 0 auto; }
+        .category { margin-bottom: 30px; }
+        .category-title { font-size: 24px; font-weight: bold; color: #374151; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #10b981; }
+        .product-list { display: flex; flex-direction: column; gap: 12px; }
+        .product-card { background: white; border-radius: 16px; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .product-name { font-size: 18px; font-weight: bold; color: #374151; }
+        .product-price { font-size: 20px; font-weight: bold; color: #10b981; }
+        .footer { text-align: center; margin-top: 40px; padding: 20px; color: #6b7280; font-size: 14px; }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; border-radius: 24px; padding: 40px; max-width: 400px; width: 90%; }
+        .modal-title { text-align: center; margin-bottom: 30px; color: #374151; }
+        .login-input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 12px; margin-bottom: 15px; font-size: 16px; }
+        .modal-login-btn { width: 100%; background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 12px; font-size: 16px; cursor: pointer; }
+        .modal-login-btn:hover { background: #2563eb; }
+        .modal-close { width: 100%; background: #6b7280; color: white; border: none; padding: 12px; border-radius: 12px; font-size: 14px; cursor: pointer; margin-top: 10px; }
+        .error-msg { color: #ef4444; text-align: center; margin-top: 10px; font-size: 14px; }
+        .pos-container { max-width: 1200px; margin: 0 auto; width: 100%; }
+        .pos-header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .logout-btn { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; }
+        .tables { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+        .table-btn { padding: 40px 20px; border: none; border-radius: 16px; cursor: pointer; font-weight: bold; font-size: 18px; min-width: 120px; transition: transform 0.2s; position: relative; }
+        .table-btn:hover { transform: scale(1.05); }
+        .table-btn.available { background: #10b981; color: white; }
+        .table-btn.occupied { background: #ef4444; color: white; }
+        .order-view { margin-top: 20px; }
+        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .back-btn { background: #6b7280; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+        .order-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .product-list-pos { display: flex; flex-direction: column; gap: 10px; max-height: 500px; overflow-y: auto; background: white; padding: 20px; border-radius: 16px; }
+        .product-btn { padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 12px; cursor: pointer; text-align: left; margin-bottom: 8px; }
+        .product-btn:hover { background: #2563eb; }
+        .product-btn.disabled { background: #9ca3af; cursor: not-allowed; }
+        .cart-view { background: white; border-radius: 16px; padding: 20px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+        .cart-item-detail { font-size: 12px; color: #6b7280; }
+        .payment-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .pay-btn { background: #10b981; color: white; border: none; padding: 12px; flex: 1; border-radius: 12px; font-size: 16px; cursor: pointer; }
+        .pay-btn.detailed { background: #3b82f6; }
+        .pay-btn:hover { opacity: 0.9; }
+        .pay-btn.disabled { background: #9ca3af; cursor: not-allowed; }
+        .table-actions { margin-bottom: 20px; display: flex; gap: 10px; justify-content: center; }
+        .action-btn { background: #6b7280; color: white; border: none; padding: 10px 20px; border-radius: 12px; cursor: pointer; font-size: 14px; }
+        .action-btn.primary { background: #3b82f6; }
+        .action-btn.warning { background: #f59e0b; }
+        .action-btn.danger { background: #ef4444; }
+        .action-btn.disabled { background: #9ca3af; cursor: not-allowed; }
+        .modal-payment { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-payment-content { background: white; border-radius: 16px; padding: 20px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .close-modal { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+        .payment-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid #e5e7eb; cursor: pointer; transition: background 0.2s; }
+        .payment-item:hover { background: #f3f4f6; }
+        .payment-item-info { flex: 1; }
+        .payment-item-controls { min-width: 80px; text-align: right; }
+        .payment-total { margin-top: 20px; padding-top: 10px; border-top: 2px solid #e5e7eb; font-weight: bold; font-size: 18px; }
+        .modal-pay-btn { background: #10b981; color: white; border: none; padding: 12px; width: 100%; border-radius: 12px; margin-top: 20px; font-size: 16px; cursor: pointer; }
+        hr { margin: 20px 0; }
+        h4 { margin: 10px 0 5px 0; color: #374151; }
+        .admin-panel { background: white; border-radius: 16px; padding: 20px; margin-top: 20px; }
+        .admin-table { width: 100%; border-collapse: collapse; }
+        .admin-table th, .admin-table td { border: 1px solid #e5e7eb; padding: 10px; text-align: left; }
+        .admin-table th { background: #f3f4f6; }
+        .admin-input { padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; width: 100%; }
+        .admin-btn { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 8px; margin: 2px; cursor: pointer; }
+        .admin-btn.danger { background: #ef4444; }
+        .admin-btn.success { background: #10b981; }
+        .switch-btn { background: #6b7280; color: white; border: none; padding: 10px 20px; border-radius: 12px; margin-bottom: 20px; font-size: 16px; cursor: pointer; }
+        .hidden { display: none; }
+        .section-title { margin-top: 30px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb; }
+        .revenue-card { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; }
+        .revenue-card h3 { margin: 0 0 10px 0; font-size: 18px; opacity: 0.9; }
+        .revenue-card .total { font-size: 36px; font-weight: bold; margin: 0; }
+        .revenue-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: #f3f4f6; padding: 15px; border-radius: 12px; text-align: center; }
+        .stat-box .label { font-size: 14px; color: #6b7280; margin-bottom: 5px; }
+        .stat-box .value { font-size: 24px; font-weight: bold; color: #374151; }
+        .order-history { max-height: 300px; overflow-y: auto; }
+        .order-item { padding: 10px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; }
+        .order-date { font-size: 12px; color: #6b7280; }
+        .masa-baslik { text-align: center; margin-bottom: 30px; color: #374151; }
+        .selected-for-merge { border: 3px solid #f59e0b !important; transform: scale(1.02); }
+        .loading { text-align: center; padding: 50px; color: #6b7280; font-size: 18px; }
     </style>
 </head>
 <body>
-    <div id="app">
-        <div class="loading">🔄 Yükleniyor...</div>
-    </div>
+    <div id="app"><div class="loading">🔄 Yükleniyor...</div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
         import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
 
-        // Firebase yapılandırması
         const firebaseConfig = {
             apiKey: "AIzaSyD7AMoc_82_XGLFEFCXuzg23O6inLVIPic",
             authDomain: "fir-pos-f8221.firebaseapp.com",
@@ -675,6 +131,20 @@
         let transferTargetTable = null;
         let dataLoaded = false;
         let isInPOS = false;
+        let isInAdmin = false;
+
+        // ========== FIREBASE KAYDETME ==========
+        function saveProducts() { set(ref(database, 'products'), products); }
+        function saveTables() { set(ref(database, 'tables'), tablesData); }
+        function saveOrders() { set(ref(database, 'orders'), orders); }
+        function saveUsers() { set(ref(database, 'users'), users); }
+        function saveRevenue() { set(ref(database, 'revenue'), revenueData); }
+
+        // ========== YETKİLER ==========
+        function canEditProducts() { return currentUser && (currentUser.role === "waiter" || currentUser.role === "cashier" || currentUser.role === "admin"); }
+        function canManageTables() { return currentUser && (currentUser.role === "cashier" || currentUser.role === "admin"); }
+        function canMakePayment() { return currentUser && (currentUser.role === "cashier" || currentUser.role === "admin"); }
+        function canAccessAdminPanel() { return currentUser && currentUser.role === "admin"; }
 
         // ========== FIREBASE VERİ DİNLEME ==========
         function initFirebaseListeners() {
@@ -691,113 +161,65 @@
             
             const productsRef = ref(database, 'products');
             onValue(productsRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    products = snapshot.val();
-                } else {
-                    products = [
-                        { id: 1, name: "Kola", price: 25, category: "İçecek" },
-                        { id: 2, name: "Ayran", price: 20, category: "İçecek" },
-                        { id: 3, name: "Su", price: 10, category: "İçecek" },
-                        { id: 4, name: "Izgara Köfte", price: 180, category: "Yemek" },
-                        { id: 5, name: "Tavuk Şiş", price: 160, category: "Yemek" },
-                        { id: 6, name: "Mevsim Salata", price: 65, category: "Salata" }
-                    ];
-                    set(productsRef, products);
-                }
-                if (isInPOS && dataLoaded) {
-                    refreshPOSData();
-                }
+                products = snapshot.exists() ? snapshot.val() : [
+                    { id: 1, name: "Kola", price: 25, category: "İçecek" },
+                    { id: 2, name: "Ayran", price: 20, category: "İçecek" },
+                    { id: 3, name: "Su", price: 10, category: "İçecek" },
+                    { id: 4, name: "Izgara Köfte", price: 180, category: "Yemek" },
+                    { id: 5, name: "Tavuk Şiş", price: 160, category: "Yemek" },
+                    { id: 6, name: "Mevsim Salata", price: 65, category: "Salata" }
+                ];
+                if (!snapshot.exists()) set(productsRef, products);
+                if (isInPOS) { renderProductsPOS(); if (selectedTableId) renderCart(); }
                 checkAllLoaded();
             });
             
             const tablesRef = ref(database, 'tables');
             onValue(tablesRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    tablesData = snapshot.val();
-                } else {
-                    tablesData = [
-                        { id: 1, name: "Masa 1", total: 0 },
-                        { id: 2, name: "Masa 2", total: 0 },
-                        { id: 3, name: "Masa 3", total: 0 },
-                        { id: 4, name: "Masa 4", total: 0 }
-                    ];
-                    set(tablesRef, tablesData);
-                }
-                if (isInPOS && dataLoaded) {
-                    refreshPOSData();
-                }
+                tablesData = snapshot.exists() ? snapshot.val() : [
+                    { id: 1, name: "Masa 1", total: 0 },
+                    { id: 2, name: "Masa 2", total: 0 },
+                    { id: 3, name: "Masa 3", total: 0 },
+                    { id: 4, name: "Masa 4", total: 0 }
+                ];
+                if (!snapshot.exists()) set(tablesRef, tablesData);
+                if (isInPOS) { renderTablesPOS(); }
                 checkAllLoaded();
             });
             
             const ordersRef = ref(database, 'orders');
             onValue(ordersRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    orders = snapshot.val();
-                } else {
-                    orders = {};
-                    set(ordersRef, orders);
-                }
-                if (isInPOS && dataLoaded) {
-                    refreshPOSData();
-                }
+                orders = snapshot.exists() ? snapshot.val() : {};
+                if (!snapshot.exists()) set(ordersRef, orders);
+                if (isInPOS && selectedTableId) { renderCart(); }
                 checkAllLoaded();
             });
             
             const usersRef = ref(database, 'users');
             onValue(usersRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    users = snapshot.val();
-                } else {
-                    users = [
-                        { username: "garson", password: "1234", role: "waiter" },
-                        { username: "kasiyer", password: "1234", role: "cashier" },
-                        { username: "admin", password: "1234", role: "admin" }
-                    ];
-                    set(usersRef, users);
-                }
+                users = snapshot.exists() ? snapshot.val() : [
+                    { username: "garson", password: "1234", role: "waiter" },
+                    { username: "kasiyer", password: "1234", role: "cashier" },
+                    { username: "admin", password: "1234", role: "admin" }
+                ];
+                if (!snapshot.exists()) set(usersRef, users);
                 checkAllLoaded();
             });
             
             const revenueRef = ref(database, 'revenue');
             onValue(revenueRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    revenueData = snapshot.val();
-                } else {
-                    revenueData = { total: 0, orders: [] };
-                    set(revenueRef, revenueData);
-                }
-                if (isInPOS && dataLoaded) {
-                    refreshPOSData();
-                }
+                revenueData = snapshot.exists() ? snapshot.val() : { total: 0, orders: [] };
+                if (!snapshot.exists()) set(revenueRef, revenueData);
+                if (isInAdmin) { renderRevenueStats(); }
                 checkAllLoaded();
             });
-        }
-
-        // ========== FIREBASE KAYDETME ==========
-        function saveProducts() { set(ref(database, 'products'), products); }
-        function saveTables() { set(ref(database, 'tables'), tablesData); }
-        function saveOrders() { set(ref(database, 'orders'), orders); }
-        function saveUsers() { set(ref(database, 'users'), users); }
-        function saveRevenue() { set(ref(database, 'revenue'), revenueData); }
-
-        // ========== YETKİLER ==========
-        function canEditProducts() {
-            return currentUser && (currentUser.role === "waiter" || currentUser.role === "cashier" || currentUser.role === "admin");
-        }
-        function canManageTables() {
-            return currentUser && (currentUser.role === "cashier" || currentUser.role === "admin");
-        }
-        function canMakePayment() {
-            return currentUser && (currentUser.role === "cashier" || currentUser.role === "admin");
-        }
-        function canAccessAdminPanel() {
-            return currentUser && currentUser.role === "admin";
         }
 
         // ========== DİJİTAL MENÜ ==========
         function renderMenu() {
             if (!dataLoaded) return;
             isInPOS = false;
+            isInAdmin = false;
             
             const categories = [...new Set(products.map(p => p.category))];
             let productsHtml = "";
@@ -817,7 +239,6 @@
                 <div class="menu-container">${productsHtml}</div>
                 <div class="footer">RestoranPOS ©️ 2024 | Gerçek Zamanlı Firebase</div>
             `;
-            
             document.getElementById("showLoginBtn").onclick = showLoginModal;
         }
 
@@ -836,7 +257,6 @@
                 </div>
             `;
             document.body.appendChild(modal);
-            
             document.getElementById("doLoginBtn").onclick = () => {
                 const username = document.getElementById("loginUsername").value;
                 const password = document.getElementById("loginPassword").value;
@@ -854,25 +274,15 @@
         // ========== POS SİSTEMİ ==========
         function getTableStatus(tableId) {
             const cart = orders[tableId];
-            if (cart && cart.length > 0) return "occupied";
-            return "available";
-        }
-
-        function refreshPOSData() {
-            if (!isInPOS) return;
-            renderTablesPOS();
-            renderProductsPOS();
-            if (selectedTableId) renderCart();
-            if (document.getElementById("adminScreen") && !document.getElementById("adminScreen").classList.contains("hidden")) {
-                renderRevenueStats();
-                renderAdminProducts();
-                renderAdminTables();
-                renderAdminUsers();
-            }
+            return (cart && cart.length > 0) ? "occupied" : "available";
         }
 
         function renderPOS() {
             isInPOS = true;
+            isInAdmin = false;
+            selectedTableId = null;
+            actionMode = null;
+            
             const roleText = currentUser.role === "admin" ? "Admin" : (currentUser.role === "cashier" ? "Kasiyer" : "Garson");
             
             let html = `
@@ -921,23 +331,16 @@
                     </div>
                     <div id="adminScreen" class="hidden">
                         <div class="admin-panel">
-                            <div class="revenue-card">
-                                <h3>💰 Toplam Ciro</h3>
-                                <div class="total" id="totalRevenue">0 TL</div>
-                            </div>
-                            <div class="revenue-stats">
-                                <div class="stat-box"><div class="label">Bugünkü Ciro</div><div class="value" id="todayRevenue">0 TL</div></div>
-                                <div class="stat-box"><div class="label">Toplam Sipariş</div><div class="value" id="totalOrders">0</div></div>
-                            </div>
+                            <div class="revenue-card"><h3>💰 Toplam Ciro</h3><div class="total" id="totalRevenue">0 TL</div></div>
+                            <div class="revenue-stats"><div class="stat-box"><div class="label">Bugünkü Ciro</div><div class="value" id="todayRevenue">0 TL</div></div><div class="stat-box"><div class="label">Toplam Sipariş</div><div class="value" id="totalOrders">0</div></div></div>
                             <button id="resetStatsBtn" class="admin-btn danger">🗑 İstatistikleri Sıfırla</button>
-                            <h3>📋 Sipariş Geçmişi</h3>
-                            <div id="orderHistory" class="order-history"></div>
+                            <h3>📋 Sipariş Geçmişi</h3><div id="orderHistory" class="order-history"></div>
                             <h2 class="section-title">📦 Ürün Yönetimi</h2>
                             <button id="addProductBtn" class="admin-btn success">+ Yeni Ürün Ekle</button>
                             <table class="admin-table"><thead><tr><th>ID</th><th>Ürün Adı</th><th>Fiyat</th><th>Kategori</th><th>İşlemler</th></tr></thead><tbody id="adminProductList"></tbody></table>
                             <h2 class="section-title">🪑 Masa Yönetimi</h2>
                             <button id="addTableBtn" class="admin-btn success">+ Yeni Masa Ekle</button>
-                            <table class="admin-table"><thead><tr><th>ID</th><th>Masa Adı</th><th>Durum</th><th>İşlemler</th></tr></thead><tbody id="adminTableList"></tbody></tr>
+                            <table class="admin-table"><thead><tr><th>ID</th><th>Masa Adı</th><th>Durum</th><th>İşlemler</th></tr></thead><tbody id="adminTableList"></tbody></table>
                             <h2 class="section-title">👥 Kullanıcı Yönetimi</h2>
                             <button id="addUserBtn" class="admin-btn success">+ Yeni Kullanıcı Ekle</button>
                             <table class="admin-table"><thead><tr><th>Kullanıcı Adı</th><th>Rol</th><th>İşlemler</th></tr></thead><tbody id="adminUserList"></tbody></table>
@@ -1003,7 +406,6 @@
             const tablesDiv = document.getElementById("tables");
             if (!tablesDiv) return;
             tablesDiv.innerHTML = "";
-            
             tablesData.forEach(table => {
                 const btn = document.createElement("button");
                 const status = getTableStatus(table.id);
@@ -1011,15 +413,10 @@
                 if (actionMode) {
                     const isSelected = selectedTablesForAction.includes(table.id);
                     const isTarget = (actionMode === "transfer" && transferTargetTable === table.id);
-                    
                     btn.textContent = table.name;
                     if (isSelected) {
                         btn.className = "table-btn available selected-for-merge";
-                        if (actionMode === "transfer" && selectedTablesForAction[0] === table.id) {
-                            btn.innerHTML = `${table.name}<br><span style="font-size:12px;">📦 KAYNAK</span>`;
-                        } else {
-                            btn.innerHTML = `${table.name}<br><span style="font-size:12px;">✓ SEÇİLDİ</span>`;
-                        }
+                        btn.innerHTML = actionMode === "transfer" && selectedTablesForAction[0] === table.id ? `${table.name}<br><span style="font-size:12px;">📦 KAYNAK</span>` : `${table.name}<br><span style="font-size:12px;">✓ SEÇİLDİ</span>`;
                     } else if (isTarget) {
                         btn.className = "table-btn available selected-for-merge";
                         btn.innerHTML = `${table.name}<br><span style="font-size:12px;">🎯 HEDEF</span>`;
@@ -1098,8 +495,10 @@
 
         function renderCart() {
             if (!selectedTableId) {
-                document.getElementById("cart").innerHTML = "<p>Sepet boş</p>";
-                document.getElementById("total").innerHTML = "Toplam: 0 TL";
+                const cartDiv = document.getElementById("cart");
+                if (cartDiv) cartDiv.innerHTML = "<p>Sepet boş</p>";
+                const totalDiv = document.getElementById("total");
+                if (totalDiv) totalDiv.innerHTML = "Toplam: 0 TL";
                 return;
             }
             const cartItems = orders[selectedTableId] || [];
@@ -1122,7 +521,7 @@
             document.getElementById("total").innerHTML = `Toplam: ${total} TL`;
             
             document.querySelectorAll('.remove-cart-item').forEach(btn => {
-                btn.onclick = (e) => {
+                btn.onclick = () => {
                     const index = parseInt(btn.dataset.index);
                     if (!canEditProducts()) { alert("Ürün çıkarma yetkiniz yok!"); return; }
                     if (!selectedTableId) return;
@@ -1132,11 +531,9 @@
                 };
             });
             
-            if (selectedTableId) {
-                const table = tablesData.find(t => t.id === selectedTableId);
-                if (table) table.total = total;
-                saveTables();
-            }
+            const table = tablesData.find(t => t.id === selectedTableId);
+            if (table) table.total = total;
+            saveTables();
         }
 
         function payOrder() {
@@ -1294,9 +691,12 @@
             actionMode = null;
             selectedTablesForAction = [];
             transferTargetTable = null;
-            document.getElementById("mergeModeBtn").classList.remove("hidden");
-            document.getElementById("transferModeBtn").classList.remove("hidden");
-            document.getElementById("cancelActionBtn").classList.add("hidden");
+            const mergeBtn = document.getElementById("mergeModeBtn");
+            const transferBtn = document.getElementById("transferModeBtn");
+            const cancelBtn = document.getElementById("cancelActionBtn");
+            if (mergeBtn) mergeBtn.classList.remove("hidden");
+            if (transferBtn) transferBtn.classList.remove("hidden");
+            if (cancelBtn) cancelBtn.classList.add("hidden");
             renderTablesPOS();
         }
 
@@ -1353,11 +753,13 @@
                 posScreen.classList.remove("hidden");
                 adminScreen.classList.add("hidden");
                 switchBtn.textContent = "🔧 Admin Paneli";
+                isInAdmin = false;
                 backToTables();
             } else {
                 posScreen.classList.add("hidden");
                 adminScreen.classList.remove("hidden");
                 switchBtn.textContent = "💰 POS Ekranı";
+                isInAdmin = true;
                 renderRevenueStats();
                 renderAdminProducts();
                 renderAdminTables();
@@ -1371,13 +773,11 @@
             const ordersElem = document.getElementById("totalOrders");
             const historyElem = document.getElementById("orderHistory");
             if (!totalElem) return;
-            
             totalElem.textContent = `${revenueData.total} TL`;
             ordersElem.textContent = revenueData.orders.length;
             const today = new Date().toDateString();
             const todayTotal = revenueData.orders.filter(o => new Date(o.date).toDateString() === today).reduce((s, o) => s + o.total, 0);
             todayElem.textContent = `${todayTotal} TL`;
-            
             if (revenueData.orders.length === 0) {
                 historyElem.innerHTML = "<p style='text-align:center;color:#6b7280;'>Henüz sipariş yok</p>";
             } else {
@@ -1423,11 +823,11 @@
                 const saveBtn = document.createElement("button");
                 saveBtn.textContent = "💾 Kaydet";
                 saveBtn.className = "admin-btn";
-                saveBtn.onclick = () => { p.name = nameInput.value; p.price = parseInt(priceInput.value); p.category = catInput.value; saveProducts(); renderAdminProducts(); if (document.getElementById("orderView") && !document.getElementById("orderView").classList.contains("hidden")) renderProductsPOS(); };
+                saveBtn.onclick = () => { p.name = nameInput.value; p.price = parseInt(priceInput.value); p.category = catInput.value; saveProducts(); renderAdminProducts(); if (!isInAdmin && selectedTableId) renderProductsPOS(); };
                 const deleteBtn = document.createElement("button");
                 deleteBtn.textContent = "🗑 Sil";
                 deleteBtn.className = "admin-btn danger";
-                deleteBtn.onclick = () => { if (confirm("Silinsin mi?")) { Object.keys(orders).forEach(tid => { orders[tid] = orders[tid].filter(i => i.id !== p.id); }); products = products.filter(x => x.id !== p.id); saveProducts(); saveOrders(); renderAdminProducts(); if (document.getElementById("orderView") && !document.getElementById("orderView").classList.contains("hidden")) renderProductsPOS(); } };
+                deleteBtn.onclick = () => { if (confirm("Silinsin mi?")) { Object.keys(orders).forEach(tid => { orders[tid] = orders[tid].filter(i => i.id !== p.id); }); products = products.filter(x => x.id !== p.id); saveProducts(); saveOrders(); renderAdminProducts(); if (!isInAdmin && selectedTableId) renderProductsPOS(); } };
                 actionCell.appendChild(saveBtn);
                 actionCell.appendChild(deleteBtn);
             });
@@ -1438,7 +838,7 @@
             products.push({ id: newId, name: "Yeni Ürün", price: 0, category: "Diğer" });
             saveProducts();
             renderAdminProducts();
-            if (document.getElementById("orderView") && !document.getElementById("orderView").classList.contains("hidden")) renderProductsPOS();
+            if (!isInAdmin && selectedTableId) renderProductsPOS();
         }
 
         function renderAdminTables() {
@@ -1462,11 +862,11 @@
                 const saveBtn = document.createElement("button");
                 saveBtn.textContent = "💾 Kaydet";
                 saveBtn.className = "admin-btn";
-                saveBtn.onclick = () => { t.name = nameInput.value; saveTables(); renderAdminTables(); if (!document.getElementById("posScreen").classList.contains("hidden")) renderTablesPOS(); if (selectedTableId === t.id) document.getElementById("selectedTableTitle").innerHTML = `${t.name} - Sipariş`; };
+                saveBtn.onclick = () => { t.name = nameInput.value; saveTables(); renderAdminTables(); if (!isInAdmin) renderTablesPOS(); if (selectedTableId === t.id) document.getElementById("selectedTableTitle").innerHTML = `${t.name} - Sipariş`; };
                 const deleteBtn = document.createElement("button");
                 deleteBtn.textContent = "🗑 Sil";
                 deleteBtn.className = "admin-btn danger";
-                deleteBtn.onclick = () => { if (tablesData.length === 1) { alert("En az bir masa olmalı!"); return; } if (confirm(`${t.name} silinsin mi?`)) { delete orders[t.id]; tablesData = tablesData.filter(x => x.id !== t.id); if (selectedTableId === t.id) backToTables(); saveTables(); saveOrders(); renderAdminTables(); if (!document.getElementById("posScreen").classList.contains("hidden")) renderTablesPOS(); } };
+                deleteBtn.onclick = () => { if (tablesData.length === 1) { alert("En az bir masa olmalı!"); return; } if (confirm(`${t.name} silinsin mi?`)) { delete orders[t.id]; tablesData = tablesData.filter(x => x.id !== t.id); if (selectedTableId === t.id) backToTables(); saveTables(); saveOrders(); renderAdminTables(); if (!isInAdmin) renderTablesPOS(); } };
                 actionCell.appendChild(saveBtn);
                 actionCell.appendChild(deleteBtn);
             });
@@ -1479,7 +879,7 @@
             saveTables();
             saveOrders();
             renderAdminTables();
-            if (!document.getElementById("posScreen").classList.contains("hidden")) renderTablesPOS();
+            if (!isInAdmin) renderTablesPOS();
         }
 
         function renderAdminUsers() {
