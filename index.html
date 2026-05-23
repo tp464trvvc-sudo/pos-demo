@@ -658,7 +658,6 @@
             databaseURL: "https://fir-pos-f8221-default-rtdb.europe-west1.firebasedatabase.app/"
         };
 
-        // Firebase'i başlat
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
@@ -674,8 +673,8 @@
         let actionMode = null;
         let selectedTablesForAction = [];
         let transferTargetTable = null;
-        let isFirebaseReady = false;
         let dataLoaded = false;
+        let isInPOS = false;
 
         // ========== FIREBASE VERİ DİNLEME ==========
         function initFirebaseListeners() {
@@ -686,12 +685,10 @@
                 loadedCount++;
                 if (loadedCount === totalRefs) {
                     dataLoaded = true;
-                    isFirebaseReady = true;
                     renderMenu();
                 }
             }
             
-            // Ürünleri dinle
             const productsRef = ref(database, 'products');
             onValue(productsRef, (snapshot) => {
                 if (snapshot.exists()) {
@@ -707,10 +704,12 @@
                     ];
                     set(productsRef, products);
                 }
+                if (isInPOS && dataLoaded) {
+                    refreshPOSData();
+                }
                 checkAllLoaded();
             });
             
-            // Masaları dinle
             const tablesRef = ref(database, 'tables');
             onValue(tablesRef, (snapshot) => {
                 if (snapshot.exists()) {
@@ -724,10 +723,12 @@
                     ];
                     set(tablesRef, tablesData);
                 }
+                if (isInPOS && dataLoaded) {
+                    refreshPOSData();
+                }
                 checkAllLoaded();
             });
             
-            // Siparişleri dinle
             const ordersRef = ref(database, 'orders');
             onValue(ordersRef, (snapshot) => {
                 if (snapshot.exists()) {
@@ -736,10 +737,12 @@
                     orders = {};
                     set(ordersRef, orders);
                 }
+                if (isInPOS && dataLoaded) {
+                    refreshPOSData();
+                }
                 checkAllLoaded();
             });
             
-            // Kullanıcıları dinle
             const usersRef = ref(database, 'users');
             onValue(usersRef, (snapshot) => {
                 if (snapshot.exists()) {
@@ -755,7 +758,6 @@
                 checkAllLoaded();
             });
             
-            // Ciro verilerini dinle
             const revenueRef = ref(database, 'revenue');
             onValue(revenueRef, (snapshot) => {
                 if (snapshot.exists()) {
@@ -764,16 +766,19 @@
                     revenueData = { total: 0, orders: [] };
                     set(revenueRef, revenueData);
                 }
+                if (isInPOS && dataLoaded) {
+                    refreshPOSData();
+                }
                 checkAllLoaded();
             });
         }
 
         // ========== FIREBASE KAYDETME ==========
-        function saveProducts() { if (isFirebaseReady) set(ref(database, 'products'), products); }
-        function saveTables() { if (isFirebaseReady) set(ref(database, 'tables'), tablesData); }
-        function saveOrders() { if (isFirebaseReady) set(ref(database, 'orders'), orders); }
-        function saveUsers() { if (isFirebaseReady) set(ref(database, 'users'), users); }
-        function saveRevenue() { if (isFirebaseReady) set(ref(database, 'revenue'), revenueData); }
+        function saveProducts() { set(ref(database, 'products'), products); }
+        function saveTables() { set(ref(database, 'tables'), tablesData); }
+        function saveOrders() { set(ref(database, 'orders'), orders); }
+        function saveUsers() { set(ref(database, 'users'), users); }
+        function saveRevenue() { set(ref(database, 'revenue'), revenueData); }
 
         // ========== YETKİLER ==========
         function canEditProducts() {
@@ -792,6 +797,7 @@
         // ========== DİJİTAL MENÜ ==========
         function renderMenu() {
             if (!dataLoaded) return;
+            isInPOS = false;
             
             const categories = [...new Set(products.map(p => p.category))];
             let productsHtml = "";
@@ -852,7 +858,21 @@
             return "available";
         }
 
+        function refreshPOSData() {
+            if (!isInPOS) return;
+            renderTablesPOS();
+            renderProductsPOS();
+            if (selectedTableId) renderCart();
+            if (document.getElementById("adminScreen") && !document.getElementById("adminScreen").classList.contains("hidden")) {
+                renderRevenueStats();
+                renderAdminProducts();
+                renderAdminTables();
+                renderAdminUsers();
+            }
+        }
+
         function renderPOS() {
+            isInPOS = true;
             const roleText = currentUser.role === "admin" ? "Admin" : (currentUser.role === "cashier" ? "Kasiyer" : "Garson");
             
             let html = `
@@ -917,7 +937,7 @@
                             <table class="admin-table"><thead><tr><th>ID</th><th>Ürün Adı</th><th>Fiyat</th><th>Kategori</th><th>İşlemler</th></tr></thead><tbody id="adminProductList"></tbody></table>
                             <h2 class="section-title">🪑 Masa Yönetimi</h2>
                             <button id="addTableBtn" class="admin-btn success">+ Yeni Masa Ekle</button>
-                            <table class="admin-table"><thead><tr><th>ID</th><th>Masa Adı</th><th>Durum</th><th>İşlemler</th></tr></thead><tbody id="adminTableList"></tbody></table>
+                            <table class="admin-table"><thead><tr><th>ID</th><th>Masa Adı</th><th>Durum</th><th>İşlemler</th></tr></thead><tbody id="adminTableList"></tbody></tr>
                             <h2 class="section-title">👥 Kullanıcı Yönetimi</h2>
                             <button id="addUserBtn" class="admin-btn success">+ Yeni Kullanıcı Ekle</button>
                             <table class="admin-table"><thead><tr><th>Kullanıcı Adı</th><th>Rol</th><th>İşlemler</th></tr></thead><tbody id="adminUserList"></tbody></table>
@@ -944,6 +964,10 @@
             document.getElementById("mergeModeBtn").onclick = startMergeMode;
             document.getElementById("transferModeBtn").onclick = startTransferMode;
             document.getElementById("cancelActionBtn").onclick = cancelAction;
+            document.getElementById("addProductBtn").onclick = addNewProduct;
+            document.getElementById("addTableBtn").onclick = addNewTable;
+            document.getElementById("resetStatsBtn").onclick = resetStats;
+            document.getElementById("addUserBtn").onclick = addNewUser;
             
             renderTablesPOS();
             renderProductsPOS();
@@ -1342,14 +1366,23 @@
         }
 
         function renderRevenueStats() {
-            document.getElementById("totalRevenue").textContent = `${revenueData.total} TL`;
-            document.getElementById("totalOrders").textContent = revenueData.orders.length;
+            const totalElem = document.getElementById("totalRevenue");
+            const todayElem = document.getElementById("todayRevenue");
+            const ordersElem = document.getElementById("totalOrders");
+            const historyElem = document.getElementById("orderHistory");
+            if (!totalElem) return;
+            
+            totalElem.textContent = `${revenueData.total} TL`;
+            ordersElem.textContent = revenueData.orders.length;
             const today = new Date().toDateString();
             const todayTotal = revenueData.orders.filter(o => new Date(o.date).toDateString() === today).reduce((s, o) => s + o.total, 0);
-            document.getElementById("todayRevenue").textContent = `${todayTotal} TL`;
-            const historyDiv = document.getElementById("orderHistory");
-            if (revenueData.orders.length === 0) historyDiv.innerHTML = "<p style='text-align:center;color:#6b7280;'>Henüz sipariş yok</p>";
-            else historyDiv.innerHTML = revenueData.orders.map(o => `<div class="order-item"><div><strong>${o.tableName}</strong><br><span class="order-date">${new Date(o.date).toLocaleString('tr-TR')}</span></div><div><strong>${o.total} TL</strong><br><span style="font-size:12px;">${o.items.length} ürün</span></div></div>`).join('');
+            todayElem.textContent = `${todayTotal} TL`;
+            
+            if (revenueData.orders.length === 0) {
+                historyElem.innerHTML = "<p style='text-align:center;color:#6b7280;'>Henüz sipariş yok</p>";
+            } else {
+                historyElem.innerHTML = revenueData.orders.map(o => `<div class="order-item"><div><strong>${o.tableName}</strong><br><span class="order-date">${new Date(o.date).toLocaleString('tr-TR')}</span></div><div><strong>${o.total} TL</strong><br><span style="font-size:12px;">${o.items.length} ürün</span></div></div>`).join('');
+            }
         }
 
         function resetStats() {
